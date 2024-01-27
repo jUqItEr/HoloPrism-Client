@@ -1,69 +1,102 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import Clock from '../components/clock/clock'
+import { usePathname, useRouter } from 'next/navigation'
+import Headers from '../components/common/header'
+import Image from 'next/image'
+import LoggedInUser from '../app/api/login/route'
+import WeatherApi from '../components/widget/weather'
+import NewsApi from '../components/widget/news'
+import ClockApi from '../components/widget/clock'
+import NoticeApi from '../components/widget/notice'
+import StockApi from '../components/widget/stock'
 
 export default function Home() {
-    const [layoutData, setLayoutData] = useState([
-        { item: 'weather', position: { top: 0, left: 0 }, size: { width: 2, height: 1 } },
-        { item: 'clock', position: { top: 50, left: 50 }, size: { width: 2, height: 1 } },
-    ])
-
-    function handleWeatherRouting() {
-        const router = useRouter()
-        router.push('/api/weather')
-    }
-
-    const getSize = (size) => {
-        switch(`${size.width}x${size.height}`) {
-            case '1x1':
-                return 'w-1/2 h-1/2'
-            case '1x2':
-                return 'w-1/2 h-full'
-            case '2x1':
-                return 'w-full h-1/2'
-            case '2x2':
-                return 'w-full h-full'
-            default:
-                return ''
-        }
-    }
-
-    const getPosition = (position) => {
-        return `top-${position.top} left-${position.left}`
-    }
-
+    const router = useRouter()
+    const [userData, setUserData] = useState([])
+    const [pushPage, setPushPage] = useState(false)
+    
     /*
+    const fetchUserData = async () => {
+        const res = await LoggedInUser()
+        console.log(res)
+        setUserData(res)
+    }
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await fetch('/widget')
-                const data = await res.json()
-                setLayoutData(data)
-                console.log(data)
-            } catch (error) {
-                console.error('data error', error)
-            }
+        fetchUserData()
+
+        if (pushPage == 'weather') {           
+            router.push('/detail/weather')
+            console.log("pushPage ok")
         }
-        fetchData()
-    }, [])
+        
+    }, [userData])
     */
+    
+    const getWidth = (size) => {
+        return size.width === 100 ? 'w-1/4' : 'w-1/2';
+    }
+    const getHeight = (size) => {
+        return size.height === 100 ? 'h-1/4' : 'h-1/2';
+    }
+    const getTop = (position) => {
+        if (position.top === 5) return 'top-1/4'
+        else if (position.top === 10) return 'top-1/2'
+        else if (position.top === 15) return 'top-3/4'
+    }
+    const getLeft = (position) => {
+        if (position.left === 5) return 'left-1/4'
+        else if (position.left === 10) return 'left-1/2'
+        else if (position.left === 15) return 'left-3/4'
+    }
 
     return (
-        <div className='ml-10 mr-10 mt-10 mb-10 grid grid-cols-2 gap-4 h-screen relative'>
-            {layoutData.map((item, index) => {
-                const sizeClass = getSize(item.size)
-                const positionClass = getPosition(item.position)
+        <>
+            <Headers />
+            <div className='p-10 h-full background'>
+                <div className='w-full h-full grid grid-cols-4 grid-rows-4 relative'>
+                    {userData.map((item, index) => {
+                        const widthClass = getWidth(item.size)
+                        const heightClass = getHeight(item.size)
+                        const topClass = getTop(item.position)
+                        const leftClass = getLeft(item.position)
 
-                return (
-                    <div
-                        key={index}
-                        className={`border p-4 border-black ${sizeClass} ${positionClass}`}
-                    >
-                        <p>{item.item}</p>
-                    </div>
-                )
-            })}
-        </div>
+                        let widget
+                        {/*
+                        switch (item.item) {
+                            case 'weather':
+                                widget = <WeatherApi />
+                                break;
+                            case 'news':
+                                widget = <NewsApi />
+                                break;
+                            case 'clock':
+                                widget = <ClockApi />
+                                break;
+                            case 'notice':
+                                widget = <NoticeApi />
+                                break;
+                            case 'stock':
+                                widget = <StockApi />
+                                break;
+                            default:
+                                widget = null
+                                break;
+                        }
+                        */}
+
+                        return (
+                            <div
+                                key={index}
+                                className={`font border p-4 border-white
+                                absolute ${widthClass} ${heightClass} ${topClass} ${leftClass}`}
+                            >
+                                {widget}
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+        </>
     )
 }
